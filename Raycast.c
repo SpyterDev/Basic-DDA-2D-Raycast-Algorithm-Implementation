@@ -22,35 +22,7 @@
     SOFTWARE.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdint.h>
-#include <math.h>
-
-#define map_x 10
-#define map_y 10
-#define render_distance 10
-
-enum Collision_Type {
-    Colliable=1, Visible=2
-};
-
-typedef uint8_t _Tile_Properties;
-
-_Tile_Properties tile_index[] = {0, Visible};
-
-
-typedef struct {
-    float x;
-    float y;
-    float angle;
-    float temp_float;
-} _Camera;
-
-typedef struct {
-    float distance;
-    float plane_distance; 
-} _Ray;
+#include "Raycast.h"
 
 unsigned char map_tilemap[map_x][map_y] = { {1,1,1,1,1,1,1,1,1,1},
                                             {1,0,0,0,0,0,0,0,0,1},
@@ -64,59 +36,67 @@ unsigned char map_tilemap[map_x][map_y] = { {1,1,1,1,1,1,1,1,1,1},
                                             {1,1,1,1,1,1,1,1,1,1} };
 
 float absf(float x) {
-    return x < 0 ? -x : x; 
+   *(uint32_t *)(&x) &= 0x7FFFFFFF; // Disable sign bit making float positive
+    return x; 
 }
 _Ray raycast_dda_cast(_Camera * camera, enum Collision_Type target) {
-    // Trig Def
+    // Trig Function Def
+
     register float tan_theta = tanf(camera -> temp_float);
     register float sine_theta = sinf(camera -> temp_float);
     register float cos_theta = cosf(camera -> temp_float);
+
     // Vertical Line Check
-    float adjusted_sine_angle = camera->temp_float - 1.570795F;
+
+    float adjusted_sine_angle = camera -> temp_float - 1.570795F;
     if (adjusted_sine_angle < 0) adjusted_sine_angle += 6.28318F;
-    float x_increment = sinf(adjusted_sine_angle) / absf(sinf(adjusted_sine_angle));
+
+    float x_increment = sinf(adjusted_sine_angle) / absf(sinf(adjusted_sine_angle)); // Indicates whether 
     float y_increment = tan_theta;
+
     float nearest_x_int = x_increment > 0 ? 1 - (camera -> x-(int)camera -> x) : (camera -> x-(int)camera -> x);
-    
     float nearest_y_int = y_increment > 0 ? 1 - (camera -> y-(int)camera -> y) : (camera -> y-(int)camera -> y);
-    float x = x_increment > 0 ? camera -> x + x_increment : (int)camera -> x;
-    float y = camera -> y + nearest_x_int * tan_theta;
+
+    float x1 = x_increment > 0 ? camera -> x + x_increment * nearest_x_int : (int)camera -> x;
+    float y1 = camera -> y + nearest_x_int * tan_theta;
+
     int8_t collision_offset_1 = x_increment != 1 ? -1 : 0;
-    
+
     float distance_1 = absf(nearest_x_int / cos_theta);
     float distance_1_increment = absf(y_increment / sine_theta);
-    
+
     while (distance_1 < render_distance) {
-        if (tile_index[map_tilemap[(int)x+collision_offset_1][(int)y]] & target) break;
-        x += x_increment;
-        y += y_increment;
+        if (tile_index[map_tilemap[(int) y1][(int) x1 + collision_offset_1]] & target) break;
+        x1 += x_increment;
+        y1 += y_increment;
         distance_1 += distance_1_increment;
     }
 
     // Horizontal Line Check
-    y_increment = sine_theta / absf(sine_theta) > 0 ? 1 : -1;
+
+    y_increment = sine_theta / absf(sine_theta);
     x_increment = 1 / tan_theta;
-    
-    x = camera -> x + nearest_y_int / tan_theta;
-    y = y_increment ? camera -> y + nearest_y_int : camera -> y;
+
+    float x2 = camera -> x + nearest_y_int / tan_theta;
+    float y2 = y_increment ? camera -> y + nearest_y_int : camera -> y;
+
     float distance_2 = absf(nearest_y_int / sine_theta);
     float distance_2_increment = absf(1 / sine_theta);
+
     int8_t collision_offset_2 = y_increment != 1 ? -1 : 0;
+
     while (distance_2 < render_distance) {
-        if (tile_index[map_tilemap[(int)x][(int)y+collision_offset_2]] & target) break;
-        x += x_increment;
-        y += y_increment;
-        printf("Part 2: %f, %f\n", x, y);
+        if (tile_index[map_tilemap[(int)y2+collision_offset_2][(int)y2]] & target) break;
+        x2 += x_increment;
+        y2 += y_increment;
         distance_2 += distance_2_increment;
     }
-    return (_Ray){distance_1 < distance_2 ? distance_1 : distance_2, 
-                  distance_1 < distance_2 ? cosf(distance_1*camera->angle-camera->temp_float) : 
-                  cosf(distance_2*camera->angle-camera->temp_float)};
-}
 
+    // Formating and Returning Casted Ray
 
-int main(void) {
-    _Camera cam_test = {2.5,2,0,3.14};
-    raycast_dda_cast(&cam_test, Visible);
-    return EXIT_SUCCESS;
+    return (_Ray){distance_1 < distance_2 ? x1 : x2, 
+                  distance_1 < distance_2 ? y1 : y2,
+                  distance_1 < distance_2 ? distance_1 : distance_2,
+                  distance_1 < distance_2 ? cosf(distance_1 * camera -> angle - camera -> temp_float) : 
+                  cosf(distance_2 * camera -> angle-camera -> temp_float)};
 }
