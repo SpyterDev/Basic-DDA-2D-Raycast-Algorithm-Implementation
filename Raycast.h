@@ -30,10 +30,6 @@
 #include <stdint.h>
 #include <math.h>
 
-#define map_x 10
-#define map_y 10
-#define render_distance 10
-
 enum Collision_Type {
     Colliable=1, Visible=2
 };
@@ -56,7 +52,11 @@ typedef struct {
     float distance;
     float plane_distance; 
 } _Ray;
-extern unsigned char map_tilemap[map_x][map_y];
 
-extern float absf(float x);
-extern _Ray raycast_dda_cast(_Camera * camera, enum Collision_Type target);
+extern uint32_t map_x; // Indicates the map's x size
+extern uint32_t map_y; // Indicates the map's y size
+extern uint32_t render_distance; // The target render distance
+extern unsigned char ** map_tilemap; // Set to tile map (format: array (y cords) to pointer to array of rows (x cords), ex. [y][x])
+
+extern float absf(float x); // Absolute Value of a Float
+extern _Ray raycast_dda_cast(_Camera * camera, enum Collision_Type target); // raycasting the tilemap with the dda algorithm

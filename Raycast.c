@@ -24,16 +24,11 @@
 
 #include "Raycast.h"
 
-unsigned char map_tilemap[map_x][map_y] = { {1,1,1,1,1,1,1,1,1,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,0,0,0,0,0,0,0,0,1},
-                                            {1,1,1,1,1,1,1,1,1,1} };
+uint32_t map_x = 10;
+uint32_t map_y = 10;
+uint32_t render_distance = 10;
+
+unsigned char ** map_tilemap;
 
 float absf(float x) {
    *(uint32_t *)(&x) &= 0x7FFFFFFF; // Disable sign bit making float positive
