@@ -81,7 +81,7 @@ _Ray raycast_dda_cast(_Camera * camera, enum Collision_Type target) {
     int8_t collision_offset_2 = y_increment != 1 ? -1 : 0;
 
     while (distance_2 < render_distance) {
-        if (tile_index[map_tilemap[(int)y2+collision_offset_2][(int)y2]] & target) break;
+        if (tile_index[map_tilemap[(int)y2+collision_offset_2][(int)x2]] & target) break;
         x2 += x_increment;
         y2 += y_increment;
         distance_2 += distance_2_increment;
